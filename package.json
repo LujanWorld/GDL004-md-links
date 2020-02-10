@@ -1,0 +1,29 @@
+{
+  "name": "gdl004-md-links",
+  "version": "1.0.0",
+  "description": "MD Links",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LujanWorld/GDL004-md-links.git"
+  },
+  "author": "Maria Lujan Navarro",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LujanWorld/GDL004-md-links/issues"
+  },
+  "homepage": "https://github.com/LujanWorld/GDL004-md-links#readme",
+  "devDependencies": {
+    "husky": "^4.2.1",
+    "prettier": "1.19.1",
+    "pretty-quick": "^2.0.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  }
+}
