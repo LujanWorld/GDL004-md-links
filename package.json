@@ -25,5 +25,8 @@
     "hooks": {
       "pre-commit": "pretty-quick --staged"
     }
+  },
+  "dependencies": {
+    "glob": "^7.1.6"
   }
 }

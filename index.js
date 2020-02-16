@@ -1,27 +1,75 @@
 const fs = require('fs');
+const glob = require('glob');
+const path = require('path');
 
-//
-const linkRegex = /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
+const linkRegex = /\[(.*?)\]\((.*?)\)/gm;
 
 // Write a function which takes argument path to markdown file and returns all the links that file.
-//reading a file
-function getLinks(path) {
-  fs.readFile(path, 'utf8', function(err, contents) {
-    console.log(contents);
-    let results = [];
-    while (true) {
-      let re = linkRegex.exec(contents);
-      if (re === null) {
-        break;
+function getLinks(mdPath, options) {
+  const p = new Promise((resolve, reject) => {
+    fs.lstat(mdPath, (err, stats) => {
+      if (err) {
+        reject(err);
+        return;
       }
-      results.push(re[0]);
-    }
+
+      if (stats.isDirectory()) {
+        glob('**/*.md', { cwd: mdPath }, (err, files) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          files = files.map(file => {
+            // file = path + "/" + file
+            return path.join(mdPath, file);
+          });
+
+          // Return results of glob.
+          resolve(files);
+        });
+      } else {
+        // Return array of just this 1 file.
+        resolve([mdPath]);
+      }
+    });
+  }).then(mdFiles => {
+    const promises = mdFiles.map(file => {
+      const prom = new Promise((resolve, reject) => {
+        fs.readFile(file, 'utf8', function(err, contents) {
+          if (err) {
+            reject(err);
+            return;
+          }
+          let results = [];
+          while ((result = linkRegex.exec(contents)) !== null) {
+            let obj = {
+              href: result[2],
+              text: result[1],
+              path: file
+            };
+            if (options.validate) {
+              // Request.
+              let resp;
+              /// status give you the status of the answer
+              obj.status = resp.status;
+              obj.ok = resp.status >= 200 && resp.status < 400;
+            }
+            results.push(obj);
+          }
+          resolve(results);
+        });
+      });
+      return prom;
+    });
+
+    return Promise.all(promises).then(results => {
+      return results.flat();
+    });
   });
 
-  console.log('after calling readFile');
-  let links = [];
-  console.log(links);
-  return links;
+  return p;
 }
 
-let links = getLinks('test/data/simple.md');
+getLinks('test', { validate: true }).then(links => {
+  console.log(links);
+});
