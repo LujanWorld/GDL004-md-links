@@ -5,35 +5,39 @@ const axios = require('axios');
 
 const linkRegex = /\[(.*?)\]\((.*?)\)/gm;
 
-// Write a function which takes argument path to markdown file and returns all the links that file.
+// Write a function which takes argument path & options to markdown file and returns all the links that file.
 const mdLinks = (mdPath, options) => {
   const p = new Promise((resolve, reject) => {
+    // return object provides information about a file.
     fs.lstat(mdPath, (err, stats) => {
+      //callback
       if (err) {
         reject(err);
         return;
       }
-
+      //if path is directory is going to use glob.
       if (stats.isDirectory()) {
         // getting directory
         glob('**/*.md', { cwd: mdPath }, (err, files) => {
+          //way to find files md extension
           if (err) {
             reject(err);
             return;
           }
           files = files.map(file => {
             // file = path + "/" + file
-            return path.join(mdPath, file);
+            return path.join(mdPath, file); // add name to path
           });
 
           // Return results of glob.
           resolve(files);
         });
       } else {
-        // Return array of just this 1 file.
+        // Return array of just this 1 file.ex: ["some/file/location/text.md"]
         resolve([mdPath]);
       }
     });
+    // read each file the you got up
   }).then(mdFiles => {
     const promises = mdFiles.map(file => {
       const prom = new Promise((resolve, reject) => {
@@ -43,6 +47,7 @@ const mdLinks = (mdPath, options) => {
             return;
           }
           let results = [];
+          ///  while the result is null stop the search
           while ((result = linkRegex.exec(contents)) !== null) {
             let obj = {
               href: result[2],
@@ -56,7 +61,7 @@ const mdLinks = (mdPath, options) => {
             const valProms = results.map(obj => {
               // Promise based HTTP client for the browser and node.js
               return axios
-                .head(obj.href)
+                .head(obj.href) //link
                 .then(resp => {
                   obj.ok = resp.status >= 200 && resp.status < 400;
                   obj.status = resp.status;
@@ -75,6 +80,7 @@ const mdLinks = (mdPath, options) => {
                   return obj;
                 });
             });
+            // when all the validation is done, do the resolve
             Promise.all(valProms)
               .then(validatedResults => {
                 resolve(validatedResults);
@@ -91,7 +97,7 @@ const mdLinks = (mdPath, options) => {
     });
 
     return Promise.all(promises).then(results => {
-      return results.flat();
+      return results.flat(); //remove 1 array
     });
   });
 
