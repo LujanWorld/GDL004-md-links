@@ -12,6 +12,9 @@
   },
   "author": "Maria Lujan Navarro",
   "license": "ISC",
+  "bin": {
+    "md-links": "./cli.js"
+  },
   "bugs": {
     "url": "https://github.com/LujanWorld/GDL004-md-links/issues"
   },
@@ -25,5 +28,9 @@
     "hooks": {
       "pre-commit": "pretty-quick --staged"
     }
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "glob": "^7.1.6"
   }
 }
