@@ -1,63 +1,91 @@
 const mdLinks = require('./index.js');
-let input = {};
-var myArgs = process.argv.slice(2); //remove 2 from the front
 
-// console.log('myArgs: ', myArgs);
+const getOptions = () => {
+  let input = {};
 
-myArgs.forEach(function(name) {
-  switch (name) {
-    case '--stats':
-    case '-s':
-      input.stats = true;
-      break;
-    case '--validate':
-    case '-v':
-      input.validate = true;
-      break;
-    default:
-      if (!input.path) {
-        input.path = name;
-      } else {
-        console.error('Unknown arguemnt', name);
-        process.exit(1);
-      }
+  let myArgs = [];
+  if (process.argv[0].endsWith('node')) {
+    myArgs = process.argv.slice(2);
+  } else {
+    myArgs = process.argv.slice(1);
   }
-});
 
-// Options
-//console.log(input);
+  myArgs.forEach(arg => {
+    switch (arg) {
+      case '--stats':
+      case '-s':
+        input.stats = true;
+        break;
+      case '--validate':
+      case '-v':
+        input.validate = true;
+        break;
+      default:
+        if (!input.path) {
+          input.path = arg;
+        } else {
+          console.error('ERROR: unknown arguemnt:', arg);
+          process.exit(1);
+        }
+    }
+  });
 
-//Call the mdLinks
+  if (!input.path) {
+    console.error('ERROR: No path given');
+    process.exit(1);
+  }
+
+  return input;
+};
+
 async function main() {
+  const input = getOptions();
   let links;
   try {
     links = await mdLinks(input.path, { validate: input.validate });
-    links.forEach(link => {
-      if (input.validate) {
-        console.log(
-          link.path,
-          link.href,
-          link.text,
-          link.ok ? 'Ok' : 'Fail', // alternative if
-          link.status
-        );
-      } else {
-        console.log(link.path, link.href, link.text);
-      }
+    if (input.stats) {
+      const seen = {};
+      let successful = 0;
 
-      // let successCounter = 0;
-      // failCounter = 0;
-      // var theFilter = link.filter(function(broken) {
-      //   //This tests if student.grade is greater than or equal to 90. It returns the "student" object if this conditional is met.
-      //   return broken.link === false;
-      // });
-    });
+      links.forEach(link => {
+        seen[link.href] = 'seen';
+
+        if (input.validate && link.ok) {
+          successful++;
+        }
+      });
+      const unique = Object.keys(seen).length;
+      const total = links.length;
+
+      console.log('Total: ', total);
+      console.log('Unique: ', unique);
+
+      if (input.validate) {
+        console.log('Broken: ', total - successful);
+      }
+    } else {
+      links.forEach(link => {
+        if (input.validate) {
+          console.log(
+            link.path,
+            link.href,
+            link.text,
+            link.ok ? 'Ok' : 'Fail',
+            link.status
+          );
+        } else {
+          console.log(link.path, link.href, link.text);
+        }
+      });
+    }
   } catch (err) {
-    console.log(err);
+    if (err.code === 'ENOENT') {
+      console.error(`ERROR: no such file or directory - ${input.path}`);
+    } else {
+      console.error('ERROR: unexpected error:', err);
+    }
+    process.exit(1);
   }
 }
 
 main();
-// If you have stats = true
-
-// Calculate stats.
