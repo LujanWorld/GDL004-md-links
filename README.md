@@ -9,20 +9,7 @@ Para utilizar esta librería primero ...
 Debes instalar el módulo con npm
 
 ```
-npm install md-links
-```
-
-Instalar Jest en caso de que lo utilices
-
-```
-npm install --save-dev jest
-```
-
-Instalar los paquetes necesarios
-
-```
-npm install --save path
-var fs = require('fs')
+npm install https://github.com/LujanWorld/GDL004-md-links
 ```
 
 ## Su uso 🎁
@@ -65,3 +52,18 @@ $ md-links README.md --validate --stats
    { totals: 3, success: 2, failure: 1 }
  ]
 ```
+
+# Para developers
+
+npm i
+
+```bash
+npm i
+npm link .
+# You can use the `md-links` cmd.
+md-links -v -s test
+```
+
+# Diagrama de Flujo
+
+![Diagrama de flujo](./diagrama-MD-Links.png)
