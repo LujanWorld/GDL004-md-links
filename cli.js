@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const mdLinks = require('./index.js');
+const chalk = require('chalk');
 
 const getOptions = () => {
   let input = {};
@@ -58,12 +59,11 @@ async function main() {
       });
       const unique = Object.keys(seen).length;
       const total = links.length;
-
-      console.log('Total: ', total);
-      console.log('Unique: ', unique);
+      console.log(chalk.cyan('Total: '), total);
+      console.log(chalk.yellowBright('Unique: '), unique);
 
       if (input.validate) {
-        console.log('Broken: ', total - successful);
+        console.log(chalk.red('Broken: '), total - successful);
       }
     } else {
       links.forEach(link => {
